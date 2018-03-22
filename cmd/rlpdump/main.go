@@ -23,6 +23,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -58,8 +59,18 @@ func main() {
 		r = bytes.NewReader(data)
 
 	case flag.NArg() == 0:
-		r = os.Stdin
-
+		stat, _ := os.Stdin.Stat()
+		if (stat.Mode() & os.ModeNamedPipe) == 0 {
+			r = os.Stdin
+		} else {
+			input, _ := ioutil.ReadAll(os.Stdin)
+			str := strings.TrimSpace(string(input))
+			data, err := hex.DecodeString(strings.TrimPrefix(str, "0x"))
+			if err != nil {
+				die(err)
+			}
+			r = bytes.NewReader(data)
+		}
 	case flag.NArg() == 1:
 		fd, err := os.Open(flag.Arg(0))
 		if err != nil {
