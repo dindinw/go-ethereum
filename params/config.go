@@ -76,6 +76,7 @@ var (
 		GrayGlacierBlock:              big.NewInt(15_050_000),
 		TerminalTotalDifficulty:       MainnetTerminalTotalDifficulty, // 58_750_000_000_000_000_000_000
 		TerminalTotalDifficultyPassed: true,
+		ShanghaiTime:                  newUint64(1681338455),
 		Ethash:                        new(EthashConfig),
 	}
 
@@ -497,6 +498,22 @@ func (c *ChainConfig) Description() string {
 		} else {
 			banner += "Consensus: Beacon (proof-of-stake), merged from Clique (proof-of-authority)\n"
 		}
+	case c.ChainID.String() == QngMainnetChainConfig.ChainID:
+	case c.ChainID.String() == QngTestnetChainConfig.ChainID:
+		banner += "Consensus: MeerDAG (proof-of-work)\n"
+		return banner
+	case c.ChainID.String() == AmanaChainConfig.ChainID:
+	case c.ChainID.String() == AmanaTestnetChainConfig.ChainID:
+		banner += "Consensus: Amana (proof-of-authority)\n"
+		return banner
+	case c.ChainID.String() == FlanaChainConfig.ChainID:
+	case c.ChainID.String() == FlanaTestnetChainConfig.ChainID:
+		banner += "Consensus: Flana (rollup)\n"
+		return banner
+	case c.ChainID.String() == MizanaChainConfig.ChainID:
+	case c.ChainID.String() == MizanaTestnetChainConfig.ChainID:
+		banner += "Consensus: Mizana (ZK rollup)\n"
+		return banner
 	default:
 		banner += "Consensus: unknown\n"
 	}
@@ -955,7 +972,7 @@ type Rules struct {
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158               bool
 	IsByzantium, IsConstantinople, IsPetersburg, IsIstanbul bool
 	IsBerlin, IsLondon                                      bool
-	IsMerge, IsShanghai, isCancun, isPrague                 bool
+	IsMerge, IsShanghai, IsCancun, IsPrague                 bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -978,7 +995,7 @@ func (c *ChainConfig) Rules(num *big.Int, isMerge bool, timestamp uint64) Rules 
 		IsLondon:         c.IsLondon(num),
 		IsMerge:          isMerge,
 		IsShanghai:       c.IsShanghai(timestamp),
-		isCancun:         c.IsCancun(timestamp),
-		isPrague:         c.IsPrague(timestamp),
+		IsCancun:         c.IsCancun(timestamp),
+		IsPrague:         c.IsPrague(timestamp),
 	}
 }
