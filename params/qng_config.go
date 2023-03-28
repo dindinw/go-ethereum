@@ -1,43 +1,69 @@
 package params
 
+import "math/big"
+
 type MeerChainConfig struct {
-	ChainID string // chainId identifies the current chain and is used for replay protection
+	ChainID *big.Int // chainId identifies the current chain and is used for replay protection
 }
 
 var (
 	QngMainnetChainConfig = &MeerChainConfig{
-		ChainID: "813",
+		ChainID: big.NewInt(813),
 	}
 	QngTestnetChainConfig = &MeerChainConfig{
-		ChainID: "8131",
+		ChainID: big.NewInt(8131),
+	}
+	QngMixnetChainConfig = &MeerChainConfig{
+		ChainID: big.NewInt(8132),
+	}
+	QngPrivnetChainConfig = &MeerChainConfig{
+		ChainID: big.NewInt(8133),
 	}
 	AmanaChainConfig = &MeerChainConfig{
-		ChainID: "8132",
+		ChainID: big.NewInt(8134),
 	}
 	AmanaTestnetChainConfig = &MeerChainConfig{
-		ChainID: "81321",
+		ChainID: big.NewInt(81341),
+	}
+	AmanaMixnetChainConfig = &MeerChainConfig{
+		ChainID: big.NewInt(81342),
+	}
+	AmanaPrivnetChainConfig = &MeerChainConfig{
+		ChainID: big.NewInt(81343),
 	}
 	FlanaChainConfig = &MeerChainConfig{
-		ChainID: "8133",
+		ChainID: big.NewInt(8135),
 	}
 	FlanaTestnetChainConfig = &MeerChainConfig{
-		ChainID: "81331",
+		ChainID: big.NewInt(81351),
+	}
+	FlanaMixnetChainConfig = &MeerChainConfig{
+		ChainID: big.NewInt(81352),
+	}
+	FlanaPrivnetChainConfig = &MeerChainConfig{
+		ChainID: big.NewInt(81353),
 	}
 	MizanaChainConfig = &MeerChainConfig{
-		ChainID: "8134",
+		ChainID: big.NewInt(8136),
 	}
 	MizanaTestnetChainConfig = &MeerChainConfig{
-		ChainID: "81341",
+		ChainID: big.NewInt(81361),
+	}
+	MizanaMixnetChainConfig = &MeerChainConfig{
+		ChainID: big.NewInt(81362),
+	}
+	MizanaPrivnetChainConfig = &MeerChainConfig{
+		ChainID: big.NewInt(81363),
 	}
 )
 
 func init() {
-	NetworkNames[QngMainnetChainConfig.ChainID] = "qng"
-	NetworkNames[QngTestnetChainConfig.ChainID] = "qng-test"
-	NetworkNames[AmanaChainConfig.ChainID] = "amana"
-	NetworkNames[AmanaTestnetChainConfig.ChainID] = "amana-test"
-	NetworkNames[FlanaChainConfig.ChainID] = "flana"
-	NetworkNames[FlanaTestnetChainConfig.ChainID] = "flana-test"
-	NetworkNames[MizanaChainConfig.ChainID] = "mizana"
-	NetworkNames[MizanaTestnetChainConfig.ChainID] = "mizana-test"
+	NetworkNames[QngMainnetChainConfig.ChainID.String()] = "qng"
+	NetworkNames[QngTestnetChainConfig.ChainID.String()] = "qng-test"
+	NetworkNames[AmanaChainConfig.ChainID.String()] = "amana"
+	NetworkNames[AmanaTestnetChainConfig.ChainID.String()] = "amana-test"
+	NetworkNames[FlanaChainConfig.ChainID.String()] = "flana"
+	NetworkNames[FlanaTestnetChainConfig.ChainID.String()] = "flana-test"
+	NetworkNames[MizanaChainConfig.ChainID.String()] = "mizana"
+	NetworkNames[MizanaTestnetChainConfig.ChainID.String()] = "mizana-test"
 }
