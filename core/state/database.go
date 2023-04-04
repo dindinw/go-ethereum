@@ -136,12 +136,19 @@ func NewDatabase(db ethdb.Database) Database {
 // is safe for concurrent use and retains a lot of collapsed RLP trie nodes in a
 // large memory cache.
 func NewDatabaseWithConfig(db ethdb.Database, config *trie.Config) Database {
-	return &cachingDB{
+	cachingdb := &cachingDB{
 		disk:          db,
 		codeSizeCache: lru.NewCache[common.Hash, int](codeSizeCacheSize),
 		codeCache:     lru.NewSizeConstrainedCache[common.Hash, []byte](codeCacheSize),
 		triedb:        trie.NewDatabaseWithConfig(db, config),
 	}
+	if config != nil && config.UseVerkle {
+		return &VerkleDB{
+			*cachingdb,
+			*NewPointCache(),
+		}
+	}
+	return cachingdb
 }
 
 // NewDatabaseWithNodeDB creates a state database with an already initialized node database.
