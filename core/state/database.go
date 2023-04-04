@@ -19,6 +19,7 @@ package state
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/trie/utils"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/lru"
@@ -145,7 +146,7 @@ func NewDatabaseWithConfig(db ethdb.Database, config *trie.Config) Database {
 	if config != nil && config.UseVerkle {
 		return &VerkleDB{
 			*cachingdb,
-			*NewPointCache(),
+			utils.NewPointCache(),
 		}
 	}
 	return cachingdb
