@@ -3,6 +3,7 @@
 package downloader
 
 import (
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -79,5 +80,41 @@ func (d *Downloader) fetchQngHeadersByHash(p *peerConnection, hash common.Hash, 
 		res.Done <- nil
 
 		return *res.Res.(*eth.BlockHeadersRequest), res.Meta.([]common.Hash), nil
+	}
+}
+
+func (d *Downloader) SyncQngWaitPeers(mode SyncMode, hash common.Hash, stop chan struct{}) error {
+	log.Info("Waiting for peers to retrieve sync target", "hash", hash.String(), "mode", mode.String())
+	for {
+		select {
+		case <-stop:
+			return errors.New("stop requested")
+		default:
+		}
+		d.peers.lock.RLock()
+		var peer *peerConnection
+		for _, peer = range d.peers.peers {
+			break
+		}
+		d.peers.lock.RUnlock()
+
+		if peer == nil {
+			time.Sleep(time.Second)
+			continue
+		}
+		log.Info("Attempting to retrieve sync target", "peer", peer.id)
+		headers, metas, err := d.fetchHeadersByHash(peer, hash, 1, 0, false)
+		if err != nil || len(headers) != 1 {
+			log.Warn("Failed to fetch sync target", "headers", len(headers), "err", err)
+			time.Sleep(time.Second)
+			continue
+		}
+		// Head header retrieved, if the hash matches, start the actual sync
+		if metas[0] != hash {
+			log.Error("Received invalid sync target", "want", hash, "have", metas[0])
+			time.Sleep(time.Second)
+			continue
+		}
+		return d.BeaconSync(mode, headers[0], headers[0])
 	}
 }
