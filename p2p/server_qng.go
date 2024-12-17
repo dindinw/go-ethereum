@@ -34,13 +34,12 @@ func (srv *QngServer) Start(s *Server) error {
 }
 
 func (srv *QngServer) Stop() {
-	srv.lock.Lock()
-	for _, p := range srv.peers {
-		p.Disconnect(DiscQuitting)
-	}
-	srv.lock.Unlock()
-
 	for srv.PeerCount() > 0 {
+		srv.lock.Lock()
+		for _, p := range srv.peers {
+			p.Disconnect(DiscQuitting)
+		}
+		srv.lock.Unlock()
 		select {
 		case <-time.After(time.Second):
 			srv.s.log.Info("Waiting for all peers closed in QngServer")
