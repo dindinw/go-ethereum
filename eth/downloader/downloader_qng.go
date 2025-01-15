@@ -3,6 +3,7 @@
 package downloader
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
@@ -83,12 +84,16 @@ func (d *Downloader) fetchQngHeadersByHash(p *peerConnection, hash common.Hash, 
 	}
 }
 
-func (d *Downloader) SyncQngWaitPeers(mode SyncMode, hash common.Hash, stop chan struct{}) error {
+func (d *Downloader) SyncQngWaitPeers(mode SyncMode, hash common.Hash, stop chan struct{}, timeout time.Duration) error {
 	log.Info("Waiting for peers to retrieve sync target", "hash", hash.String(), "mode", mode.String())
+	ctx, can := context.WithTimeout(context.Background(), timeout)
+	defer can()
 	for {
 		select {
 		case <-stop:
-			return errors.New("stop requested")
+			return errors.New("Downloader:stop requested")
+		case <-ctx.Done():
+			return errors.New("Downloader:sync qng timeout")
 		default:
 		}
 		d.peers.lock.RLock()
@@ -103,7 +108,7 @@ func (d *Downloader) SyncQngWaitPeers(mode SyncMode, hash common.Hash, stop chan
 			continue
 		}
 		log.Info("Attempting to retrieve sync target", "peer", peer.id)
-		headers, metas, err := d.fetchHeadersByHash(peer, hash, 1, 0, false)
+		headers, metas, err := d.fetchQngHeadersByHash(peer, hash, 1, 0, false)
 		if err != nil || len(headers) != 1 {
 			log.Warn("Failed to fetch sync target", "headers", len(headers), "err", err)
 			time.Sleep(time.Second)
