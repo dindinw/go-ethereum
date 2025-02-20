@@ -131,7 +131,7 @@ func QngEIPsBanner(banner string, c *ChainConfig) string {
 	} else {
 		banner += "Merge configured:\n"
 		banner += " - Hard-fork specification: EIP-3675 EIP-4399 Requires:EIP-2124\n"
-		banner += fmt.Sprintf(" - Network known to be merged: %v\n", c.TerminalTotalDifficultyPassed)
+		banner += fmt.Sprintf(" - Network known to be merged\n")
 		banner += fmt.Sprintf(" - Total terminal difficulty:  %v\n", c.TerminalTotalDifficulty)
 		if c.MergeNetsplitBlock != nil {
 			banner += fmt.Sprintf(" - Merge netsplit block:       #%-8v\n", c.MergeNetsplitBlock)
@@ -150,7 +150,12 @@ func QngEIPsBanner(banner string, c *ChainConfig) string {
 	if c.PragueTime != nil {
 		banner += fmt.Sprintf(" - Prague:                      @%-10v\n", *c.PragueTime)
 	}
-
+	if c.OsakaTime != nil {
+		banner += fmt.Sprintf(" - Osaka:                      @%-10v\n", *c.OsakaTime)
+	}
+	if c.VerkleTime != nil {
+		banner += fmt.Sprintf(" - Verkle:                      @%-10v\n", *c.VerkleTime)
+	}
 	return banner
 }
 

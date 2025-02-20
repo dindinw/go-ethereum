@@ -361,13 +361,7 @@ func (s *Ethereum) BloomIndexer() *core.ChainIndexer   { return s.bloomIndexer }
 // Protocols returns all the currently configured
 // network protocols to start.
 func (s *Ethereum) Protocols() []p2p.Protocol {
-	var backend eth.Backend
-	if s.config.Genesis != nil && params.IsAmanaNetwork(s.config.Genesis.Config.ChainID) {
-		backend = (*qngHandler)(s.handler)
-	} else {
-		backend = (*ethHandler)(s.handler)
-	}
-	protos := eth.MakeProtocols(backend, s.networkID, s.discmix)
+	protos := eth.MakeProtocols((*ethHandler)(s.handler), s.networkID, s.discmix)
 	if s.config.SnapshotCache > 0 {
 		protos = append(protos, snap.MakeProtocols((*snapHandler)(s.handler))...)
 	}
