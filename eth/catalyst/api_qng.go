@@ -205,7 +205,6 @@ func (api *ConsensusAPI) NewPayloadQng(params engine.ExecutableData, versionedHa
 			"params.ExcessBlobGas", ebg,
 			"len(params.Transactions)", len(params.Transactions),
 			"len(params.Withdrawals)", len(params.Withdrawals),
-			"len(params.Deposits)", len(params.Deposits),
 			"beaconRoot", beaconRoot,
 			"error", err)
 		return api.invalid(err, nil), nil
