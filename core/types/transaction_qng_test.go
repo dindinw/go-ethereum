@@ -11,7 +11,7 @@ func TestGetPubkeyFromTx(t *testing.T) {
 	key, _ := crypto.GenerateKey()
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 
-	signer := NewEIP155Signer(big.NewInt(18))
+	signer := NewPragueSigner(big.NewInt(18))
 	tx, err := SignTx(NewTransaction(0, addr, new(big.Int), 0, new(big.Int), nil), signer, key)
 	if err != nil {
 		t.Fatal(err)
@@ -26,7 +26,7 @@ func TestGetPubkeyFromTx(t *testing.T) {
 	}
 
 	var gs PKSigner
-	gs = &signer
+	gs = signer.(PKSigner)
 	pkb, err := gs.GetPublicKey(tx)
 	if err != nil {
 		t.Fatal(err)

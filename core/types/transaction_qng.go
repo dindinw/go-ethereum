@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 	"math/big"
 )
 
@@ -12,53 +13,26 @@ type PKSigner interface {
 	GetPublicKey(tx *Transaction) ([]byte, error)
 }
 
-func NewPKSigner(chainId *big.Int) PKSigner {
-	return cancunSigner{londonSigner{eip2930Signer{NewEIP155Signer(chainId)}}}
+func NewPKSigner(config *params.ChainConfig) PKSigner {
+	s := MakeSigner(config, big.NewInt(0), 0)
+	return s.(PKSigner)
 }
 
-func (s cancunSigner) GetPublicKey(tx *Transaction) ([]byte, error) {
-	if tx.Type() != BlobTxType {
-		return s.londonSigner.GetPublicKey(tx)
-	}
-	V, R, S := tx.RawSignatureValues()
-	// Blob txs are defined to use 0 and 1 as their recovery
-	// id, add 27 to become equivalent to unprotected Homestead signatures.
-	V = new(big.Int).Add(V, big.NewInt(27))
-	if tx.ChainId().Cmp(s.chainId) != 0 {
-		return nil, fmt.Errorf("%w: have %d want %d", ErrInvalidChainId, tx.ChainId(), s.chainId)
-	}
-	return recoverPlainForPubK(s.Hash(tx), R, S, V, true)
-}
-
-func (s londonSigner) GetPublicKey(tx *Transaction) ([]byte, error) {
-	if tx.Type() != DynamicFeeTxType {
-		return s.eip2930Signer.GetPublicKey(tx)
-	}
-	V, R, S := tx.RawSignatureValues()
-	// DynamicFee txs are defined to use 0 and 1 as their recovery
-	// id, add 27 to become equivalent to unprotected Homestead signatures.
-	V = new(big.Int).Add(V, big.NewInt(27))
-	if tx.ChainId().Cmp(s.chainId) != 0 {
-		return nil, fmt.Errorf("%w: have %d want %d", ErrInvalidChainId, tx.ChainId(), s.chainId)
-	}
-	return recoverPlainForPubK(s.Hash(tx), R, S, V, true)
-}
-
-func (s eip2930Signer) GetPublicKey(tx *Transaction) ([]byte, error) {
-	V, R, S := tx.RawSignatureValues()
-	switch tx.Type() {
-	case LegacyTxType:
-		return s.EIP155Signer.GetPublicKey(tx)
-	case AccessListTxType:
-		// AL txs are defined to use 0 and 1 as their recovery
-		// id, add 27 to become equivalent to unprotected Homestead signatures.
-		V = new(big.Int).Add(V, big.NewInt(27))
-	default:
+func (s *modernSigner) GetPublicKey(tx *Transaction) ([]byte, error) {
+	tt := tx.Type()
+	if !s.supportsType(tt) {
 		return nil, ErrTxTypeNotSupported
 	}
-	if tx.ChainId().Cmp(s.chainId) != 0 {
-		return nil, fmt.Errorf("%w: have %d want %d", ErrInvalidChainId, tx.ChainId(), s.chainId)
+	if tt == LegacyTxType {
+		return s.legacy.(PKSigner).GetPublicKey(tx)
 	}
+	if tx.ChainId().Cmp(s.chainID) != 0 {
+		return nil, fmt.Errorf("%w: have %d want %d", ErrInvalidChainId, tx.ChainId(), s.chainID)
+	}
+	// 'modern' txs are defined to use 0 and 1 as their recovery
+	// id, add 27 to become equivalent to unprotected Homestead signatures.
+	V, R, S := tx.RawSignatureValues()
+	V = new(big.Int).Add(V, big.NewInt(27))
 	return recoverPlainForPubK(s.Hash(tx), R, S, V, true)
 }
 
@@ -84,6 +58,14 @@ func (hs HomesteadSigner) GetPublicKey(tx *Transaction) ([]byte, error) {
 	}
 	v, r, s := tx.RawSignatureValues()
 	return recoverPlainForPubK(hs.Hash(tx), r, s, v, true)
+}
+
+func (fs FrontierSigner) GetPublicKey(tx *Transaction) ([]byte, error) {
+	if tx.Type() != LegacyTxType {
+		return nil, ErrTxTypeNotSupported
+	}
+	v, r, s := tx.RawSignatureValues()
+	return recoverPlainForPubK(fs.Hash(tx), r, s, v, false)
 }
 
 func recoverPlainForPubK(sighash common.Hash, R, S, Vb *big.Int, homestead bool) ([]byte, error) {
