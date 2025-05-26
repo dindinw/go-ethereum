@@ -104,7 +104,7 @@ func (srv *QngServer) setupConn(c *conn, dialDest *enode.Node) (bool, error) {
 	phs, err := c.doProtoHandshake(srv.s.ourHandshake)
 	if err != nil {
 		clog.Trace("Failed p2p handshake", "err", err)
-		return false, fmt.Errorf("%w: %v", errProtoHandshakeError, err)
+		return false, err
 	}
 	if id := c.node.ID(); !bytes.Equal(crypto.Keccak256(phs.ID), id[:]) {
 		clog.Trace("Wrong devp2p handshake identity", "phsid", hex.EncodeToString(phs.ID))
