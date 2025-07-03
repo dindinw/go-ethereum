@@ -70,6 +70,8 @@ func (srv *QngServer) SetupConn(fd net.Conn, flags connFlag, dialDest *enode.Nod
 	if err != nil {
 		if !c.is(inboundConn) {
 			markDialError(err)
+		} else {
+			markServeError(err)
 		}
 		c.close(err)
 	}
