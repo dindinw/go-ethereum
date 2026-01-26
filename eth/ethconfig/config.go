@@ -72,7 +72,10 @@ var Defaults = Config{
 	RPCTxFeeCap:          1, // 1 ether
 	TxSyncDefaultTimeout: 20 * time.Second,
 	TxSyncMaxTimeout:     1 * time.Minute,
+	ConsensusEngine:    CreateDefaultConsensusEngine,
 }
+
+type CreateConsensusEngine func(*params.ChainConfig, ethdb.Database) (consensus.Engine, error)
 
 //go:generate go run github.com/fjl/gencodec -type Config -formats toml -out gen_config.go
 
@@ -189,12 +192,14 @@ type Config struct {
 	// EIP-7966: eth_sendRawTransactionSync timeouts
 	TxSyncDefaultTimeout time.Duration `toml:",omitempty"`
 	TxSyncMaxTimeout     time.Duration `toml:",omitempty"`
+
+	ConsensusEngine CreateConsensusEngine
 }
 
 // CreateConsensusEngine creates a consensus engine for the given chain config.
 // Clique is allowed for now to live standalone, but ethash is forbidden and can
 // only exist on already merged networks.
-func CreateConsensusEngine(config *params.ChainConfig, db ethdb.Database) (consensus.Engine, error) {
+func CreateDefaultConsensusEngine(config *params.ChainConfig, db ethdb.Database) (consensus.Engine, error) {
 	if config.TerminalTotalDifficulty == nil {
 		log.Error("Geth only supports PoS networks. Please transition legacy networks using Geth v1.13.x.")
 		return nil, errors.New("'terminalTotalDifficulty' is not set in genesis block")
